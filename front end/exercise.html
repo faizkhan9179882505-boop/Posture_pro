@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Exercise - PosturePro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .exercise-selection {
+            text-align: center;
+            margin: 0 auto 2rem;
+            max-width: 800px;
+            padding: 2rem 1rem;
+        }
+
+        .exercise-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .exercise-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+            min-width: 160px;
+        }
+        
+        .exercise-btn .exercise-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #f0f4ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .exercise-btn .checkmark {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            background: #4361ee;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+        
+        .exercise-btn.active .checkmark {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .exercise-btn i {
+            font-size: 2rem;
+            color: #4361ee;
+            transition: all 0.3s ease;
+        }
+
+        .exercise-btn span {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .exercise-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-color: #4361ee;
+        }
+
+        .exercise-btn.active {
+            background: #4361ee;
+            border-color: #4361ee;
+        }
+
+        .exercise-btn.active i,
+        .exercise-btn.active span {
+            color: white;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin: 2rem auto 3rem;
+            max-width: 600px;
+            padding: 2.5rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.1);
+            display: none; /* Initially hidden */
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid #e9ecf5;
+        }
+        
+        .upload-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .upload-instructions {
+            color: #666;
+            margin: 0.5rem 0 1.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .upload-section.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .upload-container {
+            border: 3px dashed #e0e0e0;
+            border-radius: 15px;
+            padding: 2.5rem 2rem;
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+            background: #f9fafc;
+        }
+
+        .upload-container.drag-over {
+            background: rgba(0, 123, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #4361ee;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .or-divider {
+            margin: 1.5rem 0;
+            position: relative;
+            text-align: center;
+        }
+
+        .or-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e0e0e0;
+            z-index: 1;
+        }
+
+        .or-divider span {
+            display: inline-block;
+            background: #f9fafc;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 2;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .upload-btn, .record-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-btn {
+            background-color: #4361ee;
+            color: #fff;
+        }
+
+        .record-btn {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .record-btn:hover {
+            background-color: #f1f3f9;
+            border-color: #4361ee;
+        }
+
+        .upload-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+
+        .upload-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.4);
+        }
+
+        .file-info {
+            margin: 1.5rem 0 0.5rem;
+            font-size: 0.95rem;
+            color: #555;
+            min-height: 24px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin: 1rem 0 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4361ee, #3f37c9);
+            transition: width 0.3s ease;
+        }
+
+        /* Exercise Tips Section */
+        .exercise-tips {
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .exercise-tips h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #333;
+            margin-bottom: 1.25rem;
+            font-size: 1.4rem;
+        }
+
+        .exercise-tips h3 i {
+            color: #4361ee;
+        }
+
+        .tips-content {
+            text-align: left;
+            line-height: 1.7;
+        }
+
+        .tips-content ul {
+            padding-left: 1.5rem;
+            margin: 0;
+        }
+
+        .tips-content li {
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .tips-content li::before {
+            content: '•';
+            color: #4361ee;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="container">
+        <div class="header-content">
+            <h1>PosturePro</h1>
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="nav">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="login.html">Login</a>
+                <a href="contact.html">Contact Us</a>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Main Section -->
+<div class="main">
+    <div class="container">
+        <h2>Upload Your Exercise Video</h2>
+        <div class="exercise-selection">
+            <h2>Select Your Exercise</h2>
+            <p class="select-prompt">Choose the exercise you want to analyze from the options below</p>
+            <div class="exercise-buttons">
+                <button class="exercise-btn" data-exercise="squat">
+                    <div class="exercise-icon">
+                        <i class="fas fa-child"></i>
+                    </div>
+                    <span>Squat</span>
+                    <div class="checkmark">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </button>
+                <button class="exercise-btn" data-exercise="pushup">
+                    <div class="exercise-icon">
+                        <i class="fas fa-hand-paper"></i>
+                    </div>
+                    <span>Push Up</span>
+                    <div class="checkmark">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </button>
+                <button class="exercise-btn" data-exercise="plank">
+                    <div class="exercise-icon">
+                        <i class="fas fa-arrows-alt-h"></i>
+                    </div>
+                    <span>Plank</span>
+                    <div class="checkmark">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </button>
+                <button class="exercise-btn" data-exercise="lunge">
+                    <div class="exercise-icon">
+                        <i class="fas fa-walking"></i>
+                    </div>
+                    <span>Lunge</span>
+                    <div class="checkmark">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <div class="upload-section" id="upload-section" style="display: none;">
+            <h2>Upload <span id="selected-exercise" style="color: #4361ee; font-weight: 600;">Exercise</span> Video</h2>
+            <p id="upload-instructions" class="upload-instructions">Select an exercise above to begin</p>
+            <p>Record or upload a video of your <span id="exercise-name">exercise</span> for analysis (Max 100MB, MP4/AVI/MOV/MKV)</p>
+            
+            <div class="upload-container" id="drop-zone">
+                <div class="upload-icon">
+                    <i class="fas fa-video"></i>
+                </div>
+                <button type="button" class="upload-btn" id="browse-btn">
+                    <i class="fas fa-upload"></i> Choose Video
+                </button>
+                <div class="or-divider">
+                    <span>OR</span>
+                </div>
+                <button type="button" class="record-btn" id="record-btn">
+                    <i class="fas fa-video"></i> Record Video
+                </button>
+                <p class="or-divider">OR</p>
+                <p>Drag and drop your video here or</p>
+                <input type="file" id="video-upload" accept="video/mp4,video/avi,video/quicktime,video/x-matroska" style="display: none;">
+                <p id="file-info" class="file-info">No file selected</p>
+                <div id="progress-container" class="progress-container" style="display: none;">
+                    <div id="progress-bar" class="progress-bar">0%</div>
+                </div>
+                <input type="hidden" id="exercise-type" value="">
+            </div>
+        </div>
+
+        <div class="exercise-tips" id="exercise-tips" style="display: none;">
+            <h3><i class="fas fa-lightbulb"></i> Tips for Perfect <span id="tips-exercise">Exercise</span></h3>
+            <div class="tips-content" id="tips-content">
+                <!-- Tips will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Section -->
+<div id="results-section" style="display: none; margin: 2rem 0;">
+    <!-- Results will be dynamically inserted here -->
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact Us</a>
+        </nav>
+        <p>&copy; 2024 PosturePro. All rights reserved.</p>
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Exercise tips data
+const exerciseTips = {
+    squat: [
+        "Keep your feet shoulder-width apart",
+        "Keep your back straight and chest up",
+        "Lower down as if sitting in a chair",
+        "Knees should not go past your toes",
+        "Push through your heels to stand back up"
+    ],
+    pushup: [
+        "Keep your body in a straight line",
+        "Hands should be slightly wider than shoulder-width",
+        "Lower your chest to the floor",
+        "Keep your core engaged",
+        "Push through your palms to return to start"
+    ],
+    plank: [
+        "Keep your body in a straight line",
+        "Engage your core and glutes",
+        "Keep your neck neutral",
+        "Don't let your hips sag or rise",
+        "Breathe steadily throughout"
+    ],
+    lunge: [
+        "Keep your upper body straight",
+        "Step forward with one leg, lowering your hips",
+        "Lower until both knees are at 90-degree angles",
+        "Keep your front knee above your ankle",
+        "Push back up to the starting position"
+    ]
+};
+
+// Check if user is logged in
+function checkAuth() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+        // Redirect to login with the current page as the redirect target
+        window.location.href = 'login.html?redirect=exercise.html';
+        return false;
+    }
+    return true;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication before initializing the page
+    if (!checkAuth()) return;
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('video-upload');
+        const browseBtn = document.getElementById('browse-btn');
+        const fileInfo = document.getElementById('file-info');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const nav = document.querySelector('.nav');
+        const exerciseButtons = document.querySelectorAll('.exercise-btn');
+        const uploadSection = document.getElementById('upload-section');
+        const exerciseTypeInput = document.getElementById('exercise-type');
+        const selectedExerciseSpan = document.getElementById('selected-exercise');
+        const exerciseNameSpan = document.getElementById('exercise-name');
+        const exerciseTipsSection = document.getElementById('exercise-tips');
+        const tipsExerciseSpan = document.getElementById('tips-exercise');
+        const tipsContent = document.getElementById('tips-content');
+
+        // Exercise selection
+        exerciseButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                exerciseButtons.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                // Get exercise type from data attribute
+                const type = this.getAttribute('data-exercise');
+                // Set the exercise type in the hidden input
+                exerciseTypeInput.value = type;
+                // Update exercise info
+                showExerciseTips(type, this.querySelector('span').textContent);
+                uploadSection.style.display = 'block';
+                uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Show exercise tips with the selected type and name
+                const exerciseName = this.querySelector('span').textContent;
+                showExerciseTips(type, exerciseName);
+            });
+        });
+
+        // Show exercise tips
+        function showExerciseTips(type, name) {
+            const tips = exerciseTips[type] || [];
+            
+            // Update tips heading
+            tipsExerciseSpan.textContent = name;
+            
+            // Clear previous tips
+            tipsContent.innerHTML = '';
+            
+            // Add new tips
+            if (tips.length > 0) {
+                const tipsList = document.createElement('ul');
+                tips.forEach(tip => {
+                    const li = document.createElement('li');
+                    li.textContent = tip;
+                    tipsList.appendChild(li);
+                });
+                tipsContent.appendChild(tipsList);
+                exerciseTipsSection.style.display = 'block';
+                
+                // Scroll to tips section
+                setTimeout(() => {
+                    exerciseTipsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+            } else {
+                exerciseTipsSection.style.display = 'none';
+            }
+        }
+
+        // Toggle mobile menu
+        mobileMenuBtn.addEventListener('click', function() {
+            nav.classList.toggle('active');
+            this.classList.toggle('active');
+        });
+
+        // Handle drag and drop events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropZone.classList.add('drag-over');
+            document.querySelector('.upload-icon').style.transform = 'scale(1.2)';
+        }
+
+        function unhighlight() {
+            dropZone.classList.remove('drag-over');
+            document.querySelector('.upload-icon').style.transform = 'scale(1)';
+        }
+
+        // Handle dropped files
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        // Exercise selection and upload section handling
+        let selectedExercise = null;
+        
+        // Initialize exercise buttons
+        exerciseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const exercise = this.getAttribute('data-exercise');
+                const exerciseName = this.querySelector('span').textContent;
+                
+                // If clicking the same exercise, don't do anything
+                if (selectedExercise === exercise) return;
+                
+                // Update active state
+                exerciseButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.style.transform = '';
+                    btn.style.boxShadow = '';
+                    btn.style.borderColor = '';
+                });
+                
+                this.classList.add('active');
+                this.style.borderColor = '#4361ee';
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.1)';
+                
+                // Update exercise info
+                exerciseTypeInput.value = exercise;
+                selectedExercise = exercise;
+                
+                if (selectedExerciseSpan) {
+                    selectedExerciseSpan.textContent = exerciseName;
+                    selectedExerciseSpan.style.textTransform = 'capitalize';
+                }
+                
+                if (exerciseNameSpan) {
+                    exerciseNameSpan.textContent = exerciseName.toLowerCase();
+                }
+                
+                // Show upload section with animation
+                if (uploadSection) {
+                    uploadSection.style.display = 'block';
+                    // Trigger reflow for animation
+                    void uploadSection.offsetWidth;
+                    uploadSection.classList.add('visible');
+                    uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                
+                // Show exercise tips
+                if (exerciseTipsSection) {
+                    exerciseTipsSection.style.display = 'block';
+                }
+                
+                // Show specific tips for the selected exercise
+                showExerciseTips(exercise, exerciseName);
+                
+                // Enable the upload button
+                if (browseBtn) {
+                    browseBtn.disabled = false;
+                    browseBtn.style.opacity = '1';
+                    browseBtn.style.cursor = 'pointer';
+                    
+                    // Update button text based on exercise
+                    const uploadText = document.querySelector('.upload-text');
+                    if (uploadText) {
+                        uploadText.textContent = `Upload ${exerciseName} Video`;
+                    }
+                }
+                
+                // Update the upload instructions
+                const uploadInstructions = document.getElementById('upload-instructions');
+                if (uploadInstructions) {
+                    uploadInstructions.textContent = `Upload a clear video of you performing ${exerciseName.toLowerCase()}s for analysis.`;
+                }
+            });
+        });
+
+        // Handle file selection via button
+        browseBtn.addEventListener('click', () => {
+            if (!exerciseTypeInput.value) {
+                fileInfo.textContent = 'Please select an exercise first';
+                fileInfo.style.color = '#e63946';
+                return;
+            }
+            fileInput.click();
+        });
+        
+        // Handle file input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length) {
+                handleFiles(e.target.files);
+            }
+        });
+
+        function handleFiles(files) {
+            const file = files[0];
+            
+            // Check if file is a video
+            if (!file.type.startsWith('video/')) {
+                fileInfo.textContent = 'Please upload a video file (MP4, AVI, MOV, MKV)';
+                fileInfo.style.color = '#e63946';
+                return;
+            }
+            
+            // Check file size (max 100MB)
+            const maxSize = 100 * 1024 * 1024; // 100MB
+            if (file.size > maxSize) {
+                fileInfo.textContent = 'File is too large. Maximum size is 100MB';
+                fileInfo.style.color = '#e63946';
+                return;
+            }
+            
+            // Update file info
+            fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
+            fileInfo.style.color = '#333';
+            
+            // Start upload
+            uploadFile(file);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function uploadFile(file) {
+            // Show progress
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            
+            try {
+                // Show processing message
+                fileInfo.textContent = 'Uploading and processing video...';
+                fileInfo.style.color = '#4361ee';
+                
+                // Create FormData and append the file and exercise type
+                const formData = new FormData();
+                formData.append('video', file);
+                formData.append('exerciseType', exerciseTypeInput.value);
+                
+                // Update progress bar during upload
+                return new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable) {
+                            const percentComplete = Math.round((e.loaded / e.total) * 100);
+                            progressBar.style.width = `${percentComplete}%`;
+                            progressBar.textContent = `${percentComplete}%`;
+                        }
+                    };
+                    
+                    xhr.open('POST', 'http://127.0.0.1:5000/analyze', true);
+                    
+                    // Set up response handler
+                    xhr.onload = function() {
+                        console.log('Received response:', {
+                            status: xhr.status,
+                            statusText: xhr.statusText,
+                            response: xhr.responseText
+                        });
+                        
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                // Update progress to 100%
+                                progressBar.style.width = '100%';
+                                progressBar.textContent = '100%';
+                                
+                                // Show success message
+                                fileInfo.innerHTML = `Analysis complete! <i class="fas fa-check"></i>`;
+                                fileInfo.style.color = '#2ecc71';
+                                
+                                // Show results
+                                showResults(response);
+                                resolve(response);
+                            } else {
+                                throw new Error(response.error || 'Analysis failed');
+                            }
+                        } catch (e) {
+                            handleError(e);
+                            reject(e);
+                        }
+                    };
+                    
+                    xhr.onerror = function() {
+                        const error = new Error('Network error occurred. Please check your connection and try again.');
+                        handleError(error);
+                        reject(error);
+                    };
+                    
+                    xhr.ontimeout = function() {
+                        const error = new Error('Request timed out. Please try again.');
+                        handleError(error);
+                        reject(error);
+                    };
+                    
+                    // Set timeout for the request (30 seconds)
+                    xhr.timeout = 30000;
+                    
+                    // Log the request before sending
+                    console.log('Sending request with form data:', {
+                        hasFile: file ? `Yes (${file.name}, ${file.size} bytes)` : 'No',
+                        exerciseType: exerciseTypeInput.value
+                    });
+                    
+                    xhr.send(formData);
+                });
+                
+            } catch (error) {
+                handleError(error);
+                throw error;
+            }
+        }
+        
+        function showResults(data) {
+            // Update UI with analysis results
+            const resultsDiv = document.createElement('div');
+            resultsDiv.className = 'results-container';
+            resultsDiv.innerHTML = `
+                <h3>Analysis Results</h3>
+                <p>Exercise: ${data.exercise}</p>
+                <p>Status: ${data.status}</p>
+                <p>${data.message}</p>
+                ${data.processed_video ? `
+                    <div class="video-container">
+                        <h4>Processed Video:</h4>
+                        <video controls>
+                            <source src="/processed/${data.processed_video}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                ` : ''}
+            `;
+            
+            // Clear previous results and append new ones
+            const resultsSection = document.getElementById('results-section');
+            if (resultsSection) {
+                resultsSection.innerHTML = '';
+                resultsSection.appendChild(resultsDiv);
+                resultsSection.style.display = 'block';
+            }
+        }
+        
+        function handleError(error) {
+            console.error('Error during file upload:', error);
+            fileInfo.textContent = `Error: ${error.message || 'Failed to process video'}`;
+            fileInfo.style.color = '#e63946';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            progressBar.style.background = '#e74c3c';
+            
+            // Clear any previous results
+            const resultsSection = document.getElementById('results-section');
+            if (resultsSection) {
+                resultsSection.innerHTML = '';
+                resultsSection.style.display = 'none';
+            }
+            
+            // Reset after error
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
+                progressBar.style.background = 'linear-gradient(90deg, #4361ee, #3f37c9)';
+            }, 3000);
+        }
+                    
+                    xhr.onerror = function() {
+                        console.error('Request failed');
+                        fileInfo.textContent = 'Failed to connect to the server. Make sure the backend is running.';
+                        fileInfo.style.color = '#e63946';
+                        progressContainer.style.display = 'none';
+                        reject(new Error('Network error occurred'));
+                    };
+                    
+                    xhr.ontimeout = function() {
+                        const error = new Error('Request timed out. Please try again.');
+                        handleError(error);
+                        reject(error);
+                    };
+                    
+                    // Set timeout for the request (30 seconds)
+                    xhr.timeout = 30000;
+                    
+                    // Log the request before sending
+                    console.log('Sending request with form data:', {
+                        hasFile: file ? `Yes (${file.name}, ${file.size} bytes)` : 'No',
+                        exerciseType: exerciseTypeInput.value
+                    });
+                    
+                    xhr.send(formData);
+                });
+                
+            } catch (error) {
+                handleError(error);
+                throw error;
+            }
+        }
+        
+        function showResults(data) {
+            // Update UI with analysis results
+            const resultsDiv = document.createElement('div');
+            resultsDiv.className = 'results-container';
+            resultsDiv.innerHTML = `
+                <h3>Analysis Results</h3>
+                <p>Exercise: ${data.exercise_type}</p>
+                <p>Duration: ${data.duration_seconds.toFixed(1)} seconds</p>
+                <p>Frames analyzed: ${data.frame_count}</p>
+                ${data.video_url ? `
+                    <div class="video-container">
+                        <h4>Processed Video:</h4>
+                        <video controls>
+                            <source src="${data.video_url}" type="video/mp4">
+                            Your browser does not support video tag.
+                        </video>
+                    </div>
+                ` : ''}
+            `;
+            
+            // Clear previous results and append new ones
+            const resultsSection = document.getElementById('results-section');
+            if (resultsSection) {
+                resultsSection.innerHTML = '';
+                resultsSection.appendChild(resultsDiv);
+                resultsSection.style.display = 'block';
+            }
+        }
+        
+        function handleError(error) {
+            console.error('Error during file upload:', error);
+            fileInfo.textContent = `Error: ${error.message || 'Failed to process video'}`;
+            fileInfo.style.color = '#e63946';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            progressBar.style.background = '#e74c3c';
+            
+            // Clear any previous results
+            const resultsSection = document.getElementById('results-section');
+            if (resultsSection) {
+                resultsSection.innerHTML = '';
+                resultsSection.style.display = 'none';
+            }
+            
+            // Reset after error
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
+                progressBar.style.background = 'linear-gradient(90deg, #4361ee, #3f37c9)';
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
